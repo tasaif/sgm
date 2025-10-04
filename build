@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+
+SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+
+if [ "$1" == "shell" ]; then
+  sudo docker exec -it sgm bash
+else
+  sudo docker image build -t sgm . && \
+  sudo docker container stop sgm && \
+  sudo docker container rm sgm && \
+  sudo docker container create --name sgm \
+    --network=host \
+    -v "$SCRIPT_DIR/opt":/opt \
+    -v "$SCRIPT_DIR/secrets":/run/secrets \
+    sgm && \
+  sudo docker container start sgm
+fi

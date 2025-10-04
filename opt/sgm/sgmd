@@ -1,0 +1,17 @@
+#!/usr/bin/env ruby
+
+require 'sinatra'
+require 'nokogiri'
+require 'pry'
+
+module Sgm end
+module Sgm::Directory end
+module Sgm::Membership end
+require_relative 'lib/config'
+require_relative 'lib/database'
+require_relative 'lib/directory'
+require_relative 'lib/membership'
+require_relative 'lib/group'
+require_relative 'lib/api'
+
+set bind: '0.0.0.0'

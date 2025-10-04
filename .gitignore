@@ -1,0 +1,5 @@
+/secrets
+/opt/google-cloud-cli-linux-x86_64.tar.gz 
+/opt/google-cloud-sdk
+*.sqlite3
+client_secrets.json

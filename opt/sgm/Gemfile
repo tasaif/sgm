@@ -1,0 +1,24 @@
+# frozen_string_literal: true
+
+source "https://rubygems.org"
+
+gem "rackup", "~> 2.2"
+gem "puma", "~> 7.0"
+gem "sinatra", "~> 4.1"
+gem "nokogiri", "~> 1.18"
+
+gem "pry", "~> 0.15.2"
+
+gem "net-ldap", "~> 0.20.0"
+
+gem "net-ssh", "~> 7.3"
+
+gem "sqlite3", "~> 2.7"
+
+gem "sequel", "~> 5.96"
+
+gem "google-apis-admin_directory_v1", "~> 0.69.0"
+
+gem "activesupport-inflector", "~> 0.1.0"
+
+gem "i18n", "~> 1.14"
