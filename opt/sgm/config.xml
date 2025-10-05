@@ -63,7 +63,8 @@
           )
         )
       </math>
-      <output-mapping directory-id='example-openldap'>cn=example-output-group,ou=Groups,dc=my-domain,dc=com</output-mapping>
+      <output-mapping directory-id='example-openldap' type='additive'>cn=example-output-group1,ou=Groups,dc=my-domain,dc=com</output-mapping>
+      <output-mapping directory-id='example-openldap' type='sync'>cn=example-output-group2,ou=Groups,dc=my-domain,dc=com</output-mapping>
     </group>
     <group id="example-exceptions">
     </group>

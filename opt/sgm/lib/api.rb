@@ -13,14 +13,18 @@ get_sequel_models.each do |klass|
   end
 
   get "/api/#{klass.table_name}/:id" do
-    retval = klass.where(id: params["id"]).first
-    if retval.nil?
+    record = klass.where(id: params["id"]).first
+    if record.nil?
       status 404
     else
+      _method = params['method']&.to_sym
+
+      record.send(_method) if record.respond_to? _method
+      
       if request.env['CONTENT_TYPE'] == 'application/xml'
-        retval.to_xml.to_s
+        record.to_xml.to_s
       else
-        retval.to_json
+        record.to_json
       end
     end
   end

@@ -17,7 +17,6 @@ module Sgm::Directory::OpenLDAP
       if @connection.bind
         puts "ok"
       else
-        binding.pry
         throw "directory connection failed"
       end
 
@@ -36,10 +35,11 @@ module Sgm::Directory::OpenLDAP
       return retval.inject(:+) || []
     end
 
+    #
+    # Note: This only returns DNs that exist
+    #
     def get_members(group_dn)
       retval = []
-      #filter = "(&(objectClass=groupOfNames)(dn=#{group_dn}))"
-      #treebase = @options.css('groups-base').text
       treebase = group_dn
       members = []
       @connection.search(base: treebase, attributes: ["member"]) do |entry|
@@ -52,6 +52,64 @@ module Sgm::Directory::OpenLDAP
         end
       end
       return retval
+    end
+
+    def select_valid_members(members)
+      attr = @options.css('user-unique-attribute').text
+      treebase = @options.css('users-base').text
+      filter = "(|#{members.map {|el| "(#{attr}=#{el.member_id})"}.join})"
+      @connection.search(base: treebase, filter: filter, attributes: [attr]).map {|result| result[attr].first }
+    end
+
+    def add_members(group_directory_id, members)
+      _members = members - get_members(group_directory_id)
+      if _members.count == 0
+        puts "Additive: Noop adding members to '#{group_directory_id}'"
+        return
+      end
+      dns = get_member_dns(_members)
+      group_cn = group_directory_id.split(',').select {|el| el.start_with? 'cn='}.first.split('=').last
+      group_exists = (@connection.search(base: group_directory_id) || []).count > 0
+      if group_exists
+        @connection.add_attribute(group_directory_id, :member, dns)
+      else
+        @connection.add(dn: group_directory_id, attributes: {cn: group_cn, objectClass: 'groupOfNames', member: dns})
+      end
+    end
+
+    def sync_members(group_directory_id, members)
+      member_dns = get_member_dns(members)
+      group_exists = (@connection.search(base: group_directory_id) || []).count > 0
+      attr = @options.css('user-unique-attribute').text
+      group_cn = group_directory_id.split(',').select {|el| el.start_with? 'cn='}.first.split('=').last
+      if members.count == 0 && group_exists
+        @connection.delete(group_directory_id)
+      elsif !group_exists
+        @connection.add(dn: group_directory_id, attributes: {cn: group_cn, objectClass: 'groupOfNames', member: member_dns})
+      else
+        existing_member_dns = @connection.search(base: group_directory_id, attributes: [:member]).first.member
+        members_to_add = member_dns - existing_member_dns
+        members_to_remove = existing_member_dns - member_dns
+        if members_to_add.count > 0
+          @connection.add_attribute(group_directory_id, :member, members_to_add)
+        else
+          puts "Sync: No members to add for '#{group_directory_id}'"
+        end
+
+        if members_to_remove.count > 0
+          @connection.modify(dn: group_directory_id, operations: [[:delete, :member, members_to_remove]])
+        else
+          puts "Sync: No members to remove for '#{group_directory_id}'"
+        end
+
+      end
+    end
+
+    def get_member_dns(members)
+      attr = @options.css('user-unique-attribute').text
+      treebase = @options.css('users-base').text
+      filter = "(|#{members.map {|el| "(#{attr}=#{el})"}.join})"
+      @connection.search(base: treebase, filter: filter, attributes: [attr]).map {|result| result[:dn].first }
     end
 
   end

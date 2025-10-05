@@ -13,7 +13,7 @@ module Sgm
       update(state: 'ok')
       doc.css("/group/*").each do |group_option|
         if group_option.name == 'output-mapping'
-          Sgm::OutputMapping.find_or_create(group_id: doc.css('group').attr('id').value, output_directory_id: group_option.attr('directory-id'), output_group_id: group_option.text)
+          Sgm::OutputMapping.find_or_create(input_group_id: doc.css('group').attr('id').value, output_directory_id: group_option.attr('directory-id'), output_group_directory_id: group_option.text, xml_data:  group_option.to_s)
           next
         end
         result = Group.static_process_membership(self, group_option)
@@ -23,6 +23,10 @@ module Sgm
           return
         end
       end
+    end
+
+    def members
+      Member.where(group_id: id).all
     end
 
   end

@@ -12,6 +12,7 @@ require_relative 'lib/database'
 require_relative 'lib/directory'
 require_relative 'lib/membership'
 require_relative 'lib/group'
+require_relative 'lib/output_mapping'
 require_relative 'lib/api'
 
 set bind: '0.0.0.0'

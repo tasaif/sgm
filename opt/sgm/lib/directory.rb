@@ -17,6 +17,15 @@ module Sgm::Directory
       attr_accessor :all
     end
 
+    def select_valid_members(members)
+      puts "Unimplemented: #{self.class}.select_valid_members"
+      []
+    end
+
+    def add_members(group_directory_id, members)
+      puts "Unimplemented: #{self.class}.add_members"
+    end
+
   end
 
   Dir["#{$app_path}/lib/directory/*.rb"].each do |path|

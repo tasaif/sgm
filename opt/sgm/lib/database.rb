@@ -107,8 +107,8 @@ DB.add_column(:membership, :type, String) unless DB[:membership].columns.include
 DB.add_column(:group, :state, String) unless DB[:group].columns.include? :state
 DB.add_column(:member, :group_id, String) unless DB[:member].columns.include? :group_id
 DB.add_column(:member, :member_id, String) unless DB[:member].columns.include? :member_id
-DB.add_column(:output_mapping, :group_id, String) unless DB[:output_mapping].columns.include? :group_id
-DB.add_column(:output_mapping, :output_group_id, String) unless DB[:output_mapping].columns.include? :output_group_id
+DB.add_column(:output_mapping, :input_group_id, String) unless DB[:output_mapping].columns.include? :input_group_id
+DB.add_column(:output_mapping, :output_group_directory_id, String) unless DB[:output_mapping].columns.include? :output_group_directory_id
 DB.add_column(:output_mapping, :output_directory_id, String) unless DB[:output_mapping].columns.include? :output_directory_id
 
 # Dynamically create a model for each table
