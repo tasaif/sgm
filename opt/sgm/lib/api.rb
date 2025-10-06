@@ -14,13 +14,13 @@ get_sequel_models.each do |klass|
 
   get "/api/#{klass.table_name}/:id" do
     record = klass.where(id: params["id"]).first
+    _method = params['method']&.to_sym
     if record.nil?
       status 404
     else
-      _method = params['method']&.to_sym
-
-      record.send(_method) if record.respond_to? _method
-      
+      if !_method.nil?
+        record.send(_method) if record.respond_to? _method
+      end
       if request.env['CONTENT_TYPE'] == 'application/xml'
         record.to_xml.to_s
       else

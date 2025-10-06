@@ -61,6 +61,10 @@ module Sgm::Directory::OpenLDAP
       @connection.search(base: treebase, filter: filter, attributes: [attr]).map {|result| result[attr].first }
     end
 
+    def group_exists?(group_directory_id)
+      (@connection.search(base: group_directory_id) || []).count > 0
+    end
+
     def add_members(group_directory_id, members)
       _members = members - get_members(group_directory_id)
       if _members.count == 0
@@ -68,9 +72,8 @@ module Sgm::Directory::OpenLDAP
         return
       end
       dns = get_member_dns(_members)
-      group_cn = group_directory_id.split(',').select {|el| el.start_with? 'cn='}.first.split('=').last
-      group_exists = (@connection.search(base: group_directory_id) || []).count > 0
-      if group_exists
+      group_cn = group_directory_id.downcase.split(',').select {|el| el.start_with? 'cn='}.first.split('=').last
+      if group_exists?(group_directory_id)
         @connection.add_attribute(group_directory_id, :member, dns)
       else
         @connection.add(dn: group_directory_id, attributes: {cn: group_cn, objectClass: 'groupOfNames', member: dns})
@@ -79,12 +82,11 @@ module Sgm::Directory::OpenLDAP
 
     def sync_members(group_directory_id, members)
       member_dns = get_member_dns(members)
-      group_exists = (@connection.search(base: group_directory_id) || []).count > 0
       attr = @options.css('user-unique-attribute').text
       group_cn = group_directory_id.split(',').select {|el| el.start_with? 'cn='}.first.split('=').last
-      if members.count == 0 && group_exists
+      if members.count == 0 && group_exists?(group_directory_id)
         @connection.delete(group_directory_id)
-      elsif !group_exists
+      elsif !group_exists?(group_directory_id)
         @connection.add(dn: group_directory_id, attributes: {cn: group_cn, objectClass: 'groupOfNames', member: member_dns})
       else
         existing_member_dns = @connection.search(base: group_directory_id, attributes: [:member]).first.member
@@ -95,13 +97,11 @@ module Sgm::Directory::OpenLDAP
         else
           puts "Sync: No members to add for '#{group_directory_id}'"
         end
-
         if members_to_remove.count > 0
           @connection.modify(dn: group_directory_id, operations: [[:delete, :member, members_to_remove]])
         else
           puts "Sync: No members to remove for '#{group_directory_id}'"
         end
-
       end
     end
 

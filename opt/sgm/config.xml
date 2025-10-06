@@ -63,8 +63,12 @@
           )
         )
       </math>
-      <output-mapping directory-id='example-openldap' type='additive'>cn=example-output-group1,ou=Groups,dc=my-domain,dc=com</output-mapping>
-      <output-mapping directory-id='example-openldap' type='sync'>cn=example-output-group2,ou=Groups,dc=my-domain,dc=com</output-mapping>
+      <output-mapping directory-id='example-openldap' type='additive'>cn=additive-example,ou=Groups,dc=my-domain,dc=com</output-mapping>
+      <output-mapping directory-id='example-openldap' type='sync'>cn=sync-example,ou=Groups,dc=my-domain,dc=com</output-mapping>
+      <output-mapping directory-id='example-google' type='additive'>additive-example@digital-citizens.org</output-mapping>
+      <output-mapping directory-id='example-google' type='sync'>sync-example@digital-citizens.org</output-mapping>
+      <output-mapping directory-id='example-ad' type='additive'>CN=additive-example,CN=Users,DC=contoso,DC=com</output-mapping>
+      <output-mapping directory-id='example-ad' type='sync'>CN=sync-example,CN=Users,DC=contoso,DC=com</output-mapping>
     </group>
     <group id="example-exceptions">
     </group>
