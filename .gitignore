@@ -3,3 +3,4 @@
 /opt/google-cloud-sdk
 *.sqlite3
 client_secrets.json
+*.swp

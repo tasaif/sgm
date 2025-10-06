@@ -69,6 +69,8 @@
       <output-mapping directory-id='example-google' type='sync'>sync-example@digital-citizens.org</output-mapping>
       <output-mapping directory-id='example-ad' type='additive'>CN=additive-example,CN=Users,DC=contoso,DC=com</output-mapping>
       <output-mapping directory-id='example-ad' type='sync'>CN=sync-example,CN=Users,DC=contoso,DC=com</output-mapping>
+      <output-mapping directory-id='example-ubuntu' type='additive'>additive-example</output-mapping>
+      <output-mapping directory-id='example-ubuntu' type='sync'>sync-example</output-mapping>
     </group>
     <group id="example-exceptions">
     </group>
