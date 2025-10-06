@@ -42,13 +42,15 @@ module Sgm::Directory::OpenLDAP
       retval = []
       treebase = group_dn
       members = []
-      @connection.search(base: treebase, attributes: ["member"]) do |entry|
-        members += entry.instance_variable_get('@myhash')[:member]
-      end
+      members = @connection.search(base: treebase, attributes: ["member"])&.entries&.first&.member || []
       attribute = @options.css('user-unique-attribute').text
       members.each do |member|
-        @connection.search(base: member, attributes: [attribute]) do |entry|
-          retval += entry.instance_variable_get('@myhash')[attribute.to_sym]
+        @connection.search(base: member, attributes: [attribute, 'objectclass']) do |entry|
+          if entry.objectclass.include? 'groupOfNames'
+            retval += get_members(entry.dn)
+          else
+            retval.push entry.instance_variable_get('@myhash')[attribute.to_sym].first
+          end
         end
       end
       return retval

@@ -65,7 +65,15 @@ module Sgm::Directory::Google
     end
 
     def _get_members(group_directory_id)
-      (@client.list_members(group_directory_id).members || []).map {|el| el.email.split('@').first }
+      retval = []
+      @client.list_members(group_directory_id).members.each do |member|
+        if member.type == "GROUP"
+          retval += get_members(member.email)
+        else
+          retval.push member.email.split('@').first
+        end
+      end
+      return retval
     end
 
     def _get_directory_members(group_directory_id)

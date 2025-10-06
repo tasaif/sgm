@@ -19,16 +19,16 @@ module Sgm::Directory::ActiveDirectory
 
     def get_members(group_dn)
       retval = []
-      filter = "(&(objectClass=user)(memberOf=#{group_dn}))"
       treebase = @options.css('users-base').text
       attribute = @options.css('user-unique-attribute').text
-      @connection.search(base: treebase, filter: filter, attributes: [attribute]) do |entry|
-        entry.each do |_attribute, _values|
-          next unless _attribute == attribute.downcase.to_sym
-          retval.push _values
+      @connection.search(base: treebase, filter: "(memberOf=#{group_dn})", attributes: [attribute, :objectClass]).each do |entry|
+        if entry.objectclass.include? 'group'
+          retval += get_members(entry.dn)
+        else
+          retval.push entry.instance_variable_get('@myhash')[attribute.downcase.to_sym].first
         end
       end
-      return retval.inject(:+) || []
+      return retval
     end
 
     def ensure_group(group_directory_id)
