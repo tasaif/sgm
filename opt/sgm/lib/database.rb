@@ -7,7 +7,11 @@ require 'active_support/inflector'
 Sequel::Model.plugin :timestamps
 Sequel::Model.plugin :json_serializer
 
-db_path = "#{$app_path}/#{$config.css('database path').text}"
+if $config.nil?
+  db_path = "#{$app_path}/default.sqlite3"
+else
+  db_path = "#{$app_path}/#{$config.css('database path').text}"
+end
 File.delete(db_path) if File.exist? db_path
 $db = SQLite3::Database.new(db_path) unless File.exist? db_path
 DB = Sequel.connect("sqlite://#{db_path}")

@@ -10,6 +10,7 @@ else
   sudo docker container rm sgm && \
   sudo docker container create --name sgm \
     --network=host \
+    --add-host openldap.local:192.168.5.235 \
     -v "$SCRIPT_DIR/opt":/opt \
     -v "$SCRIPT_DIR/secrets":/run/secrets \
     sgm && \

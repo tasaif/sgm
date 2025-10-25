@@ -10,9 +10,7 @@ module Sgm::Directory::POSIX
       match, protocol, host, port = connection_details.to_a
       default_port = 22
       @connection = Net::SSH.start(host, @options.css('username').text, password: @options.css('password').text, port: (port || default_port))
-      if @connection.exec!("echo test").strip == "test"
-        puts "ok"
-      else
+      unless @connection.exec!("echo test").strip == "test"
         throw "POSIX connection failed"
       end
 

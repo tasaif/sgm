@@ -6,7 +6,12 @@ module Sgm::Membership
       directory_id = doc.xpath('/group').first['directory-id']
       unless directory_id.nil?
         directory = Sgm::Directory::Server.all[directory_id]
-        directory.get_members(doc.text).each do |member|
+        members = directory.get_members(doc.text)
+        if members.nil?
+          $logger.error("Could not retrieve members from '#{directory_id}:#{doc.text}'")
+          return nil
+        end
+        members.each do |member|
           Sgm::Member.find_or_create(group_id: group_id, member_id: member)
         end
         return true

@@ -1,0 +1,65 @@
+<config>
+  <groups>
+    <group directory-id='example-google' id='example-group-1@digital-citizens.org' />
+    <group id="group-1">
+      <!-- Member -->
+      <!-- Group -->
+      <!-- Math -->
+      <!-- Time -->
+      <!-- Dynamic -->
+      <user>example-user-1</user><!-- Searches user-unique-attribute across directories -->
+      <group>group-2</group><!-- Searches ggm defined group -->
+      <group directory-id='example-ad'>CN=example-group-1,CN=Users,DC=contoso,DC=com</group><!-- Searches externally defined group -->
+      <group directory-id='example-openldap'>cn=example-group-2,ou=example-group-ou-1,ou=Groups,dc=my-domain,dc=com</group>
+      <group directory-id='example-ubuntu'>example-group</group>
+    </group>
+    <group id="group-2">
+      <user>example-user-2</user>
+    </group>
+    <group id="group-3">
+      <math>
+        (
+          (
+            (group[directory-id='example-ad']:CN=example-group-2,CN=Users,DC=contoso,DC=com) + 
+            (group[directory-id='example-openldap']:cn=example-group-2,ou=example-group-ou-1,ou=Groups,dc=my-domain,dc=com)
+          ) - 
+          (
+            (group:example-exceptions) +
+            (user:example-user-1)
+          )
+        )
+      </math>
+      <output-mapping directory-id='example-openldap' type='additive'>cn=additive-example,ou=Groups,dc=my-domain,dc=com</output-mapping>
+      <output-mapping directory-id='example-openldap' type='sync'>cn=sync-example,ou=Groups,dc=my-domain,dc=com</output-mapping>
+      <output-mapping directory-id='example-google' type='additive'>additive-example@digital-citizens.org</output-mapping>
+      <output-mapping directory-id='example-google' type='sync'>sync-example@digital-citizens.org</output-mapping>
+      <output-mapping directory-id='example-ad' type='additive'>CN=additive-example,CN=Users,DC=contoso,DC=com</output-mapping>
+      <output-mapping directory-id='example-ad' type='sync'>CN=sync-example,CN=Users,DC=contoso,DC=com</output-mapping>
+      <output-mapping directory-id='example-ubuntu' type='additive'>additive-example</output-mapping>
+      <output-mapping directory-id='example-ubuntu' type='sync'>sync-example</output-mapping>
+    </group>
+    <group id="example-exceptions" />
+    <group id="group-4">
+      <dynamic>
+        doc = Nokogiri::XML::Document.new
+        root_element = Nokogiri::XML::Element.new("group", doc)
+        doc.add_child(root_element)
+        child_element = Nokogiri::XML::Element.new("user", doc)
+        child_element.content = "example-user-3"
+        root_element.add_child(child_element)
+      </dynamic>
+      <!--
+        Interpreted code evaluated in the execution context of the server that returns compatible xml
+        Requires a root node
+      -->
+    </group>
+    <group id='google-example-group'>
+      <group directory-id='example-google'>example-group-1@digital-citizens.org</group>
+    </group>
+    <!--<group id="group-5">
+      <time expiration="5 days">
+        Compatible xml
+      </time>
+    </group>-->
+  </groups>
+</config>

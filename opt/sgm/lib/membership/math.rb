@@ -10,6 +10,7 @@ module Sgm::Membership
       when 'group'
         if option.nil?
           group = Sgm::Group.where(id: val).first
+          $logger.debug("Sgm::Membership::Math.parse_operand: Group not found '#{val}'")
           return nil if group.nil?
           return Sgm::Member.where(group_id: group.id).map {|el| el[:member_id]}
         else

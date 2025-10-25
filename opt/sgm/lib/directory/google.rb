@@ -27,9 +27,7 @@ module Sgm::Directory::Google
       @client = Google::Apis::AdminDirectoryV1::DirectoryService.new
       @client.authorization = access_token
       @customer = @client.get_customer(options.css('customer-id').text)
-      if @customer.id == options.css('customer-id').text
-        puts "ok"
-      else
+      unless @customer.id == options.css('customer-id').text
         throw "directory connection failed"
       end
       @users_cache ||= @client.list_users(customer: @customer.id)
@@ -51,6 +49,7 @@ module Sgm::Directory::Google
           self.send(_method_name, *args, &block)
         end
       else
+        $logger.error("#{_method_name} not implemented")
         throw :method_missing
       end
     end
@@ -61,11 +60,20 @@ module Sgm::Directory::Google
     end
 
     def _groups
-      @client.list_groups(customer: @customer.id).groups.map {|el| el.email.split('@').first }
+      (@client.list_groups(customer: @customer.id).groups || []).map {|el| el.email.split('@').first }
     end
 
     def _get_members(group_directory_id)
       retval = []
+      begin
+        response = @client.list_members(group_directory_id)
+      rescue Google::Apis::ClientError => e
+        if JSON.parse(e.body)['error']['code'] == 404
+          $logger.error("group '#{group_directory_id}' not found")
+          return nil
+        end
+        throw e
+      end
       @client.list_members(group_directory_id).members.each do |member|
         if member.type == "GROUP"
           retval += get_members(member.email)
@@ -122,6 +130,10 @@ module Sgm::Directory::Google
         user = @client.get_user(member)
         @client.insert_member(group_directory_id, user)
       end
+    end
+
+    def _ensure_group(group_directory_id)
+      ensure_directory_group(group_directory_id)
     end
 
   end

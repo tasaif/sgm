@@ -4,6 +4,7 @@ require 'sinatra'
 require 'nokogiri'
 require 'pry'
 
+$app_path = File.expand_path("#{File.dirname(__FILE__)}/..")
 module Sgm end
 module Sgm::Directory end
 module Sgm::Membership end

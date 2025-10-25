@@ -1,0 +1,24 @@
+#!/usr/bin/env ruby
+
+require 'pry'
+
+def find_parent(file_name)
+  _helper = Proc.new do |_path|
+    return nil if _path == '/'
+    __path = "#{_path}/#{file_name}"
+    return _path if File.exist? __path
+    return _helper.call(File.dirname(_path))
+  end
+
+  path = File.expand_path(File.dirname(__FILE__))
+  _helper.call(path)
+end
+
+app_root = find_parent('Gemfile')
+function_indices = `fgrep -R --exclude-dir='tests' 'def ' '#{app_root}'`.split("\n")
+tests_lines = File.read("#{app_root}/tests/code/run_unit_tests").split("\n")
+puts "Tests Missing:" if function_indices.count > 0
+function_indices.each do |function_index|
+  next if tests_lines.select {|line| line.include?("##{function_index}") }.count >= 1
+  puts "##{function_index}"
+end

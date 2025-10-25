@@ -10,15 +10,32 @@ module Sgm::Directory::OpenLDAP
       match, protocol, host, port = connection_details.to_a
       default_port = 389
       default_port = 636 if (protocol || "").include? 'ldaps'
-      @connection = Net::LDAP.new
+      if protocol.include? 'ldaps'
+        verify_mode_text = @options.css('verify-mode').text
+        verify_mode = OpenSSL::SSL::VERIFY_PEER
+        verify_mode = verify_mode_text.constantize unless verify_mode_text.empty?
+        ca_file = @options.css('ca-file').text
+        tls_options = {
+          ssl_version: :TLSv1_2,
+          verify_mode: verify_mode
+        }
+        tls_options[:ca_file] = ca_file unless ca_file.empty?
+        @connection = Net::LDAP.new({
+          encryption: {
+            method: :simple_tls,
+            tls_options: tls_options
+          }
+        })
+      else
+        @connection = Net::LDAP.new
+      end
       @connection.host = host
       @connection.port = (port || default_port).to_i
       @connection.auth @options.css('username').text, @options.css('password').text
-      if @connection.bind
-        puts "ok"
-      else
+      unless @connection.bind
         throw "directory connection failed"
       end
+      return true
 
     end
 
@@ -70,7 +87,7 @@ module Sgm::Directory::OpenLDAP
     def add_members(group_directory_id, members)
       _members = members - get_members(group_directory_id)
       if _members.count == 0
-        puts "Additive: Noop adding members to '#{group_directory_id}'"
+        $logger.debug "Additive: Noop adding members to '#{group_directory_id}'"
         return
       end
       dns = get_member_dns(_members)
@@ -87,7 +104,7 @@ module Sgm::Directory::OpenLDAP
       attr = @options.css('user-unique-attribute').text
       group_cn = group_directory_id.split(',').select {|el| el.start_with? 'cn='}.first.split('=').last
       if members.count == 0 && group_exists?(group_directory_id)
-        @connection.delete(group_directory_id)
+        @connection.delete(dn: group_directory_id)
       elsif !group_exists?(group_directory_id)
         @connection.add(dn: group_directory_id, attributes: {cn: group_cn, objectClass: 'groupOfNames', member: member_dns})
       else
@@ -97,17 +114,18 @@ module Sgm::Directory::OpenLDAP
         if members_to_add.count > 0
           @connection.add_attribute(group_directory_id, :member, members_to_add)
         else
-          puts "Sync: No members to add for '#{group_directory_id}'"
+          $logger.debug "Sync: No members to add for '#{group_directory_id}'"
         end
         if members_to_remove.count > 0
           @connection.modify(dn: group_directory_id, operations: [[:delete, :member, members_to_remove]])
         else
-          puts "Sync: No members to remove for '#{group_directory_id}'"
+          $logger.debug "Sync: No members to remove for '#{group_directory_id}'"
         end
       end
     end
 
     def get_member_dns(members)
+      return [] if members.empty?
       attr = @options.css('user-unique-attribute').text
       treebase = @options.css('users-base').text
       filter = "(|#{members.map {|el| "(#{attr}=#{el})"}.join})"
