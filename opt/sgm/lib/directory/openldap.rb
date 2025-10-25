@@ -132,6 +132,10 @@ module Sgm::Directory::OpenLDAP
       @connection.search(base: treebase, filter: filter, attributes: [attr]).map {|result| result[:dn].first }
     end
 
+    def delete_group(group_directory_id)
+      @connection.delete(dn: group_directory_id)
+    end
+
   end
 
 end

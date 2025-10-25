@@ -2,6 +2,28 @@ require_relative 'openldap'
 
 module Sgm::Directory::ActiveDirectory
 
+  def self.get_sid_string(data)
+    # Ensure the input data is a string of bytes (binary representation)
+    return nil unless data.is_a?(String) && !data.empty?
+    sid = []
+    # Revision level (1 byte)
+    sid << data[0].unpack('C').first.to_s
+    # Authority (6 bytes)
+    authority_bytes = data[2..7].unpack('C*')
+    authority = authority_bytes.reduce(0) { |sum, byte| (sum << 8) | byte }
+    sid << authority.to_s
+    # Sub-authorities (variable length, each 4 bytes)
+    # The number of sub-authorities is indicated by the byte at index 1
+    num_sub_authorities = data[1].unpack('C').first
+    offset = 8 # Start of sub-authorities
+    num_sub_authorities.times do
+      sub_authority = data[offset, 4].unpack('V').first # 'V' for little-endian unsigned long
+      sid << sub_authority.to_s
+      offset += 4
+    end
+    "S-" + sid.join('-')
+  end
+
   class Server < Sgm::Directory::OpenLDAP::Server
 
     def groups
@@ -19,9 +41,11 @@ module Sgm::Directory::ActiveDirectory
 
     def get_members(group_dn)
       retval = []
+      group_sid = Sgm::Directory::ActiveDirectory.get_sid_string(@connection.search(base: group_dn).first.objectsid.first)
+      group_sid_suffix = group_sid.split('-').last
       treebase = @options.css('users-base').text
       attribute = @options.css('user-unique-attribute').text
-      @connection.search(base: treebase, filter: "(memberOf=#{group_dn})", attributes: [attribute, :objectClass]).each do |entry|
+      @connection.search(base: treebase, filter: "(|(primaryGroupID=#{group_sid_suffix})(memberOf=#{group_dn}))", attributes: [attribute, :objectClass]).each do |entry|
         if entry.objectclass.include? 'group'
           retval += get_members(entry.dn)
         else

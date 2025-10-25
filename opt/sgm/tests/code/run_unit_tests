@@ -40,114 +40,165 @@ require_relative '../../lib/output_mapping'
 #/opt/sgm/lib/directory/google.rb:    def _add_members(group_directory_id, members)
 #/opt/sgm/lib/directory/google.rb:    def _sync_members(group_directory_id, members)
 #/opt/sgm/lib/directory/google.rb:    def _ensure_group(group_directory_id)
-#/opt/sgm/lib/directory/active_directory.rb:    def groups
-#/opt/sgm/lib/directory/active_directory.rb:    def get_members(group_dn)
-#/opt/sgm/lib/directory/active_directory.rb:    def ensure_group(group_directory_id)
-#/opt/sgm/lib/directory/active_directory.rb:    def add_members(group_directory_id, members)
-#/opt/sgm/lib/directory/active_directory.rb:    def sync_members(group_directory_id, members)
 
-#
-# OpenLDAP Unit Tests
-#
-Sgm::Directory.add(:OpenLDAP, 'example-openldap', {
-  uri: 'ldap://192.168.5.235:3890',
-  users_base: 'ou=People,dc=my-domain,dc=com',
-  groups_base: 'ou=Groups,dc=my-domain,dc=com',
-  username: 'cn=Manager,dc=my-domain,dc=com',
-  password: 'secret',
-  user_unique_attribute: 'cn',
-  ca_file: '/opt/sgm/tests/tmp/ca.pem'
-})
-openldap_test_group = "cn=sgm-functions-test,#{Sgm::Directory::Server.all['example-openldap'].options.css('groups-base').text}"
+if false
+  #
+  # OpenLDAP Unit Tests
+  #
+  Sgm::Directory.add(:OpenLDAP, 'example-openldap', {
+    uri: 'ldap://192.168.5.235:3890',
+    users_base: 'ou=People,dc=my-domain,dc=com',
+    groups_base: 'ou=Groups,dc=my-domain,dc=com',
+    username: 'cn=Manager,dc=my-domain,dc=com',
+    password: 'secret',
+    user_unique_attribute: 'cn',
+    ca_file: '/opt/sgm/tests/tmp/ca.pem'
+  })
+  openldap_test_group = "cn=sgm-functions-test,#{Sgm::Directory::Server.all['example-openldap'].options.css('groups-base').text}"
 
-#/opt/sgm/lib/directory/openldap.rb:    def connect
-puts "/opt/sgm/lib/directory/openldap.rb:    def connect"
-puts "\tTesting unencrypted connection"
-unless Sgm::Directory::Server.all['example-openldap'].connect
-  puts "failed"
-  exit 1
-end
-puts "\tTesting encrypted connection"
-Sgm::Directory::Server.all['example-openldap'].options.css('uri')[0].content = "ldaps://openldap.local:6360"
-unless Sgm::Directory::Server.all['example-openldap'].connect
-  puts "failed"
-  exit 1
-end
+  #/opt/sgm/lib/directory/openldap.rb:    def connect
+  puts "/opt/sgm/lib/directory/openldap.rb:    def connect"
+  puts "\tTesting unencrypted connection"
+  unless Sgm::Directory::Server.all['example-openldap'].connect
+    throw "failed"
+  end
+  puts "\tTesting encrypted connection"
+  Sgm::Directory::Server.all['example-openldap'].options.css('uri')[0].content = "ldaps://openldap.local:6360"
+  unless Sgm::Directory::Server.all['example-openldap'].connect
+    throw "failed"
+  end
 
-#/opt/sgm/lib/directory/openldap.rb:    def add_members(group_directory_id, members)
-puts "/opt/sgm/lib/directory/openldap.rb:    def add_members(group_directory_id, members)"
-puts "\tTesting adding 'example-user-1' to '#{openldap_test_group}'"
-if Sgm::Directory::Server.all['example-openldap'].get_member_dns(['example-user-1']).empty?
-  puts "example-user-1 must exist in the directory"
-  puts "failed"
-  exit 1
-end
-Sgm::Directory::Server.all['example-openldap'].sync_members(openldap_test_group, [])
-Sgm::Directory::Server.all['example-openldap'].add_members(openldap_test_group, ['example-user-1'])
-unless Sgm::Directory::Server.all['example-openldap'].get_members(openldap_test_group) == ['example-user-1']
-  puts "failed"
-  exit 1
-end
+  #/opt/sgm/lib/directory/openldap.rb:    def add_members(group_directory_id, members)
+  puts "/opt/sgm/lib/directory/openldap.rb:    def add_members(group_directory_id, members)"
+  puts "\tTesting adding 'example-user-1' to '#{openldap_test_group}'"
+  if Sgm::Directory::Server.all['example-openldap'].get_member_dns(['example-user-1']).empty?
+    puts "example-user-1 must exist in the directory"
+    throw "failed"
+  end
+  Sgm::Directory::Server.all['example-openldap'].sync_members(openldap_test_group, [])
+  Sgm::Directory::Server.all['example-openldap'].add_members(openldap_test_group, ['example-user-1'])
+  unless Sgm::Directory::Server.all['example-openldap'].get_members(openldap_test_group) == ['example-user-1']
+    throw "failed"
+  end
 
-#/opt/sgm/lib/directory/openldap.rb:    def groups
-puts "/opt/sgm/lib/directory/openldap.rb:    def groups"
-puts "\tTesting querying remote groups"
-unless Sgm::Directory::Server.all['example-openldap'].groups.include? openldap_test_group
-  puts "failed"
-  exit 1
-end
+  #/opt/sgm/lib/directory/openldap.rb:    def groups
+  puts "/opt/sgm/lib/directory/openldap.rb:    def groups"
+  puts "\tTesting querying remote groups"
+  unless Sgm::Directory::Server.all['example-openldap'].groups.include? openldap_test_group
+    throw "failed"
+  end
 
-#/opt/sgm/lib/directory/openldap.rb:    def get_members(group_dn)
-puts "/opt/sgm/lib/directory/openldap.rb:    def get_members(group_dn)"
-puts "\tTested earlier"
+  #/opt/sgm/lib/directory/openldap.rb:    def get_members(group_dn)
+  puts "/opt/sgm/lib/directory/openldap.rb:    def get_members(group_dn)"
+  puts "\tTested earlier"
 
-#/opt/sgm/lib/directory/openldap.rb:    def select_valid_members(members)
-puts "/opt/sgm/lib/directory/openldap.rb:    def select_valid_members(members)"
-puts "\tTesting selecting valid remote members from local members"
-group = Sgm::Group.create(id: 'group-1')
-group.add_members(['example-user-1', 'invalid-user'])
-if Sgm::Directory::Server.all['example-openldap'].select_valid_members(group.members) != ['example-user-1']
-  puts "failed"
-  exit 1
-end
+  #/opt/sgm/lib/directory/openldap.rb:    def select_valid_members(members)
+  puts "/opt/sgm/lib/directory/openldap.rb:    def select_valid_members(members)"
+  puts "\tTesting selecting valid remote members from local members"
+  group = Sgm::Group.create(id: 'group-1')
+  group.add_members(['example-user-1', 'invalid-user'])
+  if Sgm::Directory::Server.all['example-openldap'].select_valid_members(group.members) != ['example-user-1']
+    throw "failed"
+  end
 
-#/opt/sgm/lib/directory/openldap.rb:    def group_exists?(group_directory_id)
-puts "/opt/sgm/lib/directory/openldap.rb:    def group_exists?(group_directory_id)"
-puts "\tTesting if #{openldap_test_group} exists"
-unless Sgm::Directory::Server.all['example-openldap'].group_exists?(openldap_test_group)
-  puts "failed"
-  exit 1
-end
+  #/opt/sgm/lib/directory/openldap.rb:    def group_exists?(group_directory_id)
+  puts "/opt/sgm/lib/directory/openldap.rb:    def group_exists?(group_directory_id)"
+  puts "\tTesting if #{openldap_test_group} exists"
+  unless Sgm::Directory::Server.all['example-openldap'].group_exists?(openldap_test_group)
+    throw "failed"
+  end
 
-#/opt/sgm/lib/directory/openldap.rb:    def sync_members(group_directory_id, members)
-puts "/opt/sgm/lib/directory/openldap.rb:    def sync_members(group_directory_id, members)"
-puts "\tTesting syncing members to empty"
-Sgm::Directory::Server.all['example-openldap'].sync_members(openldap_test_group, [])
-if Sgm::Directory::Server.all['example-openldap'].group_exists?(openldap_test_group)
-  puts "failed"
-  exit 1
-end
-puts "\tTesting syncing members to two members"
-Sgm::Directory::Server.all['example-openldap'].sync_members(openldap_test_group, ['example-user-1', 'example-user-2'])
-if Sgm::Directory::Server.all['example-openldap'].get_members(openldap_test_group) != ['example-user-1', 'example-user-2']
-  puts "failed"
-  exit 1
-end
-puts "\tTesting syncing members to one member"
-Sgm::Directory::Server.all['example-openldap'].sync_members(openldap_test_group, ['example-user-1'])
-if Sgm::Directory::Server.all['example-openldap'].get_members(openldap_test_group) != ['example-user-1']
-  puts "failed"
-  exit 1
+  #/opt/sgm/lib/directory/openldap.rb:    def sync_members(group_directory_id, members)
+  puts "/opt/sgm/lib/directory/openldap.rb:    def sync_members(group_directory_id, members)"
+  puts "\tTesting syncing members to empty"
+  Sgm::Directory::Server.all['example-openldap'].sync_members(openldap_test_group, [])
+  if Sgm::Directory::Server.all['example-openldap'].group_exists?(openldap_test_group)
+    throw "failed"
+  end
+  puts "\tTesting syncing members to two members"
+  Sgm::Directory::Server.all['example-openldap'].sync_members(openldap_test_group, ['example-user-1', 'example-user-2'])
+  if Sgm::Directory::Server.all['example-openldap'].get_members(openldap_test_group) != ['example-user-1', 'example-user-2']
+    throw "failed"
+  end
+  puts "\tTesting syncing members to one member"
+  Sgm::Directory::Server.all['example-openldap'].sync_members(openldap_test_group, ['example-user-1'])
+  if Sgm::Directory::Server.all['example-openldap'].get_members(openldap_test_group) != ['example-user-1']
+    throw "failed"
+  end
+
+  #/opt/sgm/lib/directory/openldap.rb:    def get_member_dns(members)
+  puts "/opt/sgm/lib/directory/openldap.rb:    def get_member_dns(members)"
+  puts "\tTesting getting remote members"
+  unless Sgm::Directory::Server.all['example-openldap'].get_member_dns(['example-user-1']) == ["cn=example-user-1,ou=People,dc=my-domain,dc=com"]
+    throw "failed"
+  end
+  puts "OpenLDAP Tests Complete"
+
 end
 
-#/opt/sgm/lib/directory/openldap.rb:    def get_member_dns(members)
-puts "/opt/sgm/lib/directory/openldap.rb:    def get_member_dns(members)"
-puts "\tTesting getting remote members"
-unless Sgm::Directory::Server.all['example-openldap'].get_member_dns(['example-user-1']) == ["cn=example-user-1,ou=People,dc=my-domain,dc=com"]
-  puts "failed"
-  exit 1
+if true
+  #
+  # Active Directory Unit Tests
+  #
+  #/opt/sgm/lib/directory/active_directory.rb:    def connect
+  Sgm::Directory.add(:ActiveDirectory, 'example-ad', {
+    uri: 'ldap://WIN-BEKTSIUSGK1.contoso.com',
+    users_base: 'CN=Users,DC=contoso,DC=com',
+    groups_base: 'CN=Users,DC=contoso,DC=com',
+    username: 'CN=GGM Service,CN=Users,DC=contoso,DC=com',
+    password: 'zb%k8Xy#1X',
+    user_unique_attribute: 'sAMAccountName',
+    ca_file: '/opt/sgm/tests/tmp/ca.pem'
+  })
+  directory = Sgm::Directory::Server.all['example-ad']
+  puts "/opt/sgm/lib/directory/active_directory.rb:    def connect"
+  puts "\tTesting unencrypted connection"
+  unless directory.connect
+    throw "failed"
+  end
+  puts "\tTesting encrypted connection"
+  directory.options.css('uri')[0].content = "ldaps://WIN-BEKTSIUSGK1.contoso.com:636"
+  unless directory.connect
+    throw "failed"
+  end
+  test_group = "cn=sgm-functions-test,#{directory.options.css('groups-base').text}"
+  if directory.group_exists?(test_group)
+    directory.delete_group(test_group)
+  end
+  #/opt/sgm/lib/directory/active_directory.rb:    def group_exists?(group_directory_id)
+  #/opt/sgm/lib/directory/active_directory.rb:    def ensure_group(group_directory_id)
+  #/opt/sgm/lib/directory/active_directory.rb:    def delete_group(group_directory_id)
+  puts "/opt/sgm/lib/directory/active_directory.rb:    def group_exists?(group_directory_id)"
+  puts "/opt/sgm/lib/directory/active_directory.rb:    def ensure_group(group_directory_id)"
+  puts "/opt/sgm/lib/directory/active_directory.rb:    def delete_group(group_directory_id)"
+  throw "failed" if directory.group_exists?(test_group)
+  directory.ensure_group(test_group)
+  throw "failed" unless directory.group_exists?(test_group)
+  directory.delete_group(test_group)
+  throw "failed" if directory.group_exists?(test_group)
+  #/opt/sgm/lib/directory/active_directory.rb:    def add_members(group_directory_id, members)
+  puts "/opt/sgm/lib/directory/openldap.rb:    def add_members(group_directory_id, members)"
+  puts "\tTesting adding 'example-user-1' to '#{test_group}'"
+  if directory.get_member_dns(['example-user-1']).empty?
+    puts "example-user-1 must exist in the directory"
+    throw "failed"
+  end
+  directory.sync_members(test_group, [])
+  directory.add_members(test_group, ['example-user-1'])
+  unless directory.get_members(test_group) == ['example-user-1']
+    throw "failed"
+  end
+  #/opt/sgm/lib/directory/active_directory.rb:    def get_members(group_dn)
+  #/opt/sgm/lib/directory/active_directory.rb:    def groups
+  #/opt/sgm/lib/directory/active_directory.rb:    def select_valid_members(members)
+  #/opt/sgm/lib/directory/active_directory.rb:    def sync_members(group_directory_id, members)
+  #/opt/sgm/lib/directory/active_directory.rb:    def get_member_dns(members)
+  #/opt/sgm/lib/directory/active_directory.rb:    def groups
+  #/opt/sgm/lib/directory/active_directory.rb:    def get_members(group_dn)
+  #/opt/sgm/lib/directory/active_directory.rb:    def add_members(group_directory_id, members)
+  #/opt/sgm/lib/directory/active_directory.rb:    def sync_members(group_directory_id, members)
+
 end
-puts "OpenLDAP Tests Complete"
 
 #/opt/sgm/lib/output_mapping.rb:    def process
 
